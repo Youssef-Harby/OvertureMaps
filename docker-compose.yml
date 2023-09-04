@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  sedona:
+    container_name: sedona
+    build:
+      context: .
+      dockerfile: Dockerfile
+    # image: apache/sedona:latest
+    ports:
+      - "8888:8888"
+    volumes:
+      - .:/opt/workspace/
