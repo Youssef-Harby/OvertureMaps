@@ -2,12 +2,20 @@ FROM apache/sedona
 
 # Update and install build tools and Python
 RUN apt-get update && \
-    apt-get install -y build-essential cmake
+    apt-get install -y build-essential cmake libboost-all-dev
+
 # Install wget separately for debugging
 RUN apt-get install -y wget
 
 # Define the GDAL version here
 ARG GDAL_VERSION=3.7.1
+
+# Install Apache Arrow
+RUN apt-get install -y -V ca-certificates lsb-release wget
+RUN wget https://apache.jfrog.io/artifactory/arrow/$(lsb_release --id --short | tr 'A-Z' 'a-z')/apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb
+RUN apt-get install -y -V ./apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb
+RUN apt-get update
+RUN apt-get install -y -V libarrow-dev libparquet-dev
 
 WORKDIR /home
 
@@ -19,7 +27,7 @@ RUN tar -xzvf gdal-${GDAL_VERSION}.tar.gz && \
     cd gdal-${GDAL_VERSION} && \
     mkdir build && \
     cd build && \
-    cmake .. -DOGR_ENABLE_DRIVER_GeoParquet=ON && \
+    cmake .. -UGDAL_ENABLE_DRIVER_* -UOGR_ENABLE_DRIVER_* -DGDAL_USE_ARROW=ON -DGDAL_ENABLE_PLUGINS:BOOL=ON -DGDAL_USE_PARQUET=ON && \
     cmake --build . && \
     cmake --build . --target install && \
     cd /home && \
